@@ -29,7 +29,8 @@ export default {
       center: [37.0902, -95.7129],
       zoom: 5,
       mapboxAccessToken: 'pk.eyJ1IjoibGlvbm5hcnRhIiwiYSI6ImNrcDJjanBmNjFqMHcyb213NjlzYzJvaHgifQ.GLBCmJTmjCBql0vAb4arpw',
-      dataClick: null
+      dataClick: null,
+      geojson: null
     }
   },
   mounted() {
@@ -43,6 +44,8 @@ export default {
       tileSize: 512,
       zoomOffset: -1
     }).addTo(this.map);
+
+    this.map.zoomControl.setPosition('bottomright')
 
     axios.get('https://raw.githubusercontent.com/lulumalik/choropleth/master/public/us.json')
       .then((res) => {
