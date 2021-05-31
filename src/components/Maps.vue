@@ -1,5 +1,19 @@
 <template>
-  <div class="container">
+  <div id="map">
+    <div class="areaContainer">
+      <div class="areaInfo">
+        US State Population Density
+        <div class="info">
+          <template v-if="dataClick">
+            <p class="info-content">{{ dataClick.name }}</p>
+            <p class="info-content">{{ dataClick.density }} people/mi<sup>2</sup></p>
+          </template>
+          <template v-else>
+            <p>Click state to get information</p>
+          </template>
+        </div>
+      </div>
+    </div>
     <div id="map"></div>
   </div>
 </template>
@@ -15,6 +29,7 @@ export default {
       center: [37.0902, -95.7129],
       zoom: 5,
       mapboxAccessToken: 'pk.eyJ1IjoibGlvbm5hcnRhIiwiYSI6ImNrcDJjanBmNjFqMHcyb213NjlzYzJvaHgifQ.GLBCmJTmjCBql0vAb4arpw',
+      dataClick: null
     }
   },
   mounted() {
@@ -32,7 +47,8 @@ export default {
     axios.get('https://raw.githubusercontent.com/lulumalik/choropleth/master/public/us.json')
       .then((res) => {
         L.geoJSON(res.data, {
-          style: this.style
+          style: this.style,
+          onEachFeature: this.onEachFeature
         }).addTo(this.map)
       });
   }, methods: {
@@ -57,15 +73,93 @@ export default {
         dashArray: '3',
         fillOpacity: 0.7
       }
+    },
+    highlightedFeature(e) {
+      var layer = e.target;
+
+      layer.setStyle({
+        weight: 5,
+        color: '#423b3b',
+        dashArray: '',
+        fillOpacity: 0
+      });
+
+      if (!L.Browser.ie && !L.Browser.edge && !L.Browser.opera) {
+        layer.bringToFront();
+      }
+    },
+    resetFeature(e) {
+      var layer = e.target;
+
+      layer.setStyle({
+        weight: 1,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.7
+      })
+    },
+    infoFeature(e) {
+      this.dataClick = e.target.feature.properties
+    },
+    onEachFeature(feature, layer) {
+      layer.on({
+        mouseover: this.highlightedFeature,
+        mouseout: this.resetFeature,
+        click: this.infoFeature
+      });
+
+      layer.bindTooltip(feature.properties.name, {
+        direction: 'center',
+        className: "my-labels",
+      }).openTooltip()
     }
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
+<style>
+  .leaflet-tooltip {
+    background: transparent;
+    border: transparent;
+    box-shadow: none;
+    font-weight: bold;
+    font-size: 18px;
+  }
+</style>
 <style scoped>
   #map {
-    width: 100vw;
-    height: 100vh;
+    position: relative;
+    height: 100%;
+    width: 100%;
+  }
+
+  .areaContainer {
+    position: relative; 
+  }
+
+  .areaInfo {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 10px 15px;
+    font-size: 20px;
+    background: white;
+    opacity: 0.8;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    text-align: center;
+  }
+
+  .info {
+    font-size: 12px;
+  }
+
+  .info-content {
+    font-weight: bold;
+    font-size: 16px;
+    text-align: left;
   }
 </style>
